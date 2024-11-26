@@ -121,17 +121,24 @@ def client_thread(clientsocket: socket.socket):
     
     # extracting requested file contents
     cur_dir = os.getcwd()
-    file= os.path.join(cur_dir, file_path)
-    try:
-        with open(file) as f:
-            contents = f.read()
-        response = f'HTTP/1.1 200 OK\r\nContent-Type: {mime_type}\r\nContent-Length: {len(contents)}\r\n\r\n{contents}'
-    except:
+    file= os.path.join(cur_dir, file_path)  # VULNERABILITY : Unrestricted Access to computer by providing absolute path
+    if (not os.path.exists(file)):
         response = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n404 Not Found'
-
+    elif(os.path.isdir(file)):
+        response = 'HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\n\r\n403 Forbidden'
+    else:    
+        with open(file,"rb") as f:
+            contents = f.read()
+        response = (
+            f'HTTP/1.1 200 OK\r\n'
+            f'Content-Type: {mime_type}\r\n'
+            f'Content-Length: {len(contents)}\r\n'
+            f'\r\n'
+        )
     # sending response and closing socket
     clientsocket.send(response.encode('ASCII')) # converting string to byte object
-    clientsocket.close()
+    clientsocket
+    clientsocket.close() 
     return None
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

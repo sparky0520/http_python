@@ -62,39 +62,16 @@ def get_mime_type(extension):
     "mkv": "video/x-matroska",
     "webm": "video/webm",
     "3gp": "video/3gpp",
-
-    # Document Files
-    "pdf": "application/pdf",
-    "doc": "application/msword",
-    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "xls": "application/vnd.ms-excel",
-    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "ppt": "application/vnd.ms-powerpoint",
-    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-
-    # Compressed Files
-    "zip": "application/zip",
-    "rar": "application/vnd.rar",
-    "7z": "application/x-7z-compressed",
-    "tar": "application/x-tar",
-    "gz": "application/gzip",
-    "bz2": "application/x-bzip2",
-
-    # Binary and Executable Files
-    "exe": "application/vnd.microsoft.portable-executable",
-    "bin": "application/octet-stream",
-    "dll": "application/vnd.microsoft.portable-executable",
-
     # Font Files
     "ttf": "font/ttf",
     "otf": "font/otf",
     "woff": "font/woff",
     "woff2": "font/woff2",
+
+    # Arbitrary Type
+    "unknown": "application/octet-stream"
     }
-    if(extension in mime_types):
-        return mime_types[extension]
-    else:
-        return "application/octet-stream"
+    return mime_types.get(extension, mime_types["unknown"])
 
 def get_file_ext(file_path):
     match = search(r'[^.\\/:*?"<>|\r\n]+$',file_path)
@@ -108,20 +85,23 @@ def get_file_path(request):
     if match:
         encoded_file_path = match.group(1)  # first capturing group
         file_path = unquote(encoded_file_path) # remove special char format (%xx) with their single char equivalent
-        return file_path
+        return './'+file_path
     return ''
 
 def client_thread(clientsocket: socket.socket):
-    request= clientsocket.recv(BUFFER,0)
-    
+    request= clientsocket.recv(BUFFER,0).decode('ASCII')
     # header preparation
-    file_path = get_file_path(str(request))
+    file_path = get_file_path(request)
+    print("File Path: ",file_path)
     extension = get_file_ext(file_path)
+    print("Extension: "+ extension)
     mime_type = get_mime_type(extension)
-    
+    print("Mime Type: "+mime_type)
     # extracting requested file contents
+    contents=None
     cur_dir = os.getcwd()
-    file= os.path.join(cur_dir, file_path)  # VULNERABILITY : Unrestricted Access to computer by providing absolute path
+    file= os.path.join(cur_dir, file_path)  # VULNERABILITY : Unrestricted Access to computer by providing absolute path - Relative File Path Prepended with ./ to dodge this (In get_file_path function) 
+    print("Absolute File Path: "+ file)
     if (not os.path.exists(file)):
         response = 'HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n404 Not Found'
     elif(os.path.isdir(file)):
@@ -137,7 +117,8 @@ def client_thread(clientsocket: socket.socket):
         )
     # sending response and closing socket
     clientsocket.send(response.encode('ASCII')) # converting string to byte object
-    clientsocket
+    if contents:
+        clientsocket.send(contents)
     clientsocket.close() 
     return None
 

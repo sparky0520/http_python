@@ -107,6 +107,7 @@ def client_thread(clientsocket: socket.socket):
     elif(os.path.isdir(file)):
         response = 'HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\n\r\n403 Forbidden'
     else:    
+        # We are reading html and other text in binary mode but due to mime type the browser knows how to render it. Hence special characters not printed on the webpage
         with open(file,"rb") as f:
             contents = f.read()
         response = (

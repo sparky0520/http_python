@@ -133,10 +133,6 @@ while True:
     print(f'Server listening on port {PORT}')
     (client_socket, address) = server_socket.accept()
 
-    # Creating and dispatching process
-    p = Process(target=client_thread, args=[client_socket])
-    p.start()
-    p.join()
-    # # Creating and dispatching thread
-    # ct = threading.Thread(target=client_thread, args=[client_socket])
-    # ct.start()
+    # Creating and dispatching thread
+    ct = threading.Thread(target=client_thread, args=[client_socket])
+    ct.start()

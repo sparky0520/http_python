@@ -1,11 +1,12 @@
 import socket
 import threading
+from multiprocessing import Process
 from re import Match, search
 from urllib.parse import unquote
 import os
 
 PORT = 8081
-BUFFER = 104857600
+BUFFER = 104857600  # 100 Megabytes
 
 '''
 Create a server socket and configure it
@@ -131,5 +132,11 @@ server_socket.listen(8)
 while True:
     print(f'Server listening on port {PORT}')
     (client_socket, address) = server_socket.accept()
-    ct = threading.Thread(target=client_thread, args=[client_socket])
-    ct.start()
+
+    # Creating and dispatching process
+    p = Process(target=client_thread, args=[client_socket])
+    p.start()
+    p.join()
+    # # Creating and dispatching thread
+    # ct = threading.Thread(target=client_thread, args=[client_socket])
+    # ct.start()

@@ -81,7 +81,7 @@ def get_file_ext(file_path):
     return ''
 
 def get_file_path(request):
-    match : Match= search(r'GET /([^ ]*) HTTP/1',request)
+    match : Match= search(r'GET /([^ ]*) HTTP/1', request)
     if match:
         encoded_file_path = match.group(1)  # first capturing group
         file_path = unquote(encoded_file_path) # remove special char format (%xx) with their single char equivalent
